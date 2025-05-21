@@ -1,34 +1,36 @@
-from telegram import Bot, Update
-from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
+import time
+import telegram
+from datetime import datetime
 
-# بيانات البوت
+# إعدادات البوت
 TOKEN = '8052278560:AAGAxKOYvHYjTFEVO5BiiMC_GkkiMds88rM'
-CHANNEL_ID = '@marketeyeoptions1'  # غيّرها إذا تغيّر اسم القناة
+CHANNEL_ID = '@marketeyeoptions1'
 
-# الدالة الأساسية للتعامل مع كل الرسائل
-def forward_message(update: Update, context: CallbackContext):
-    message = update.message
-
-    # إذا كانت الرسالة تحتوي صورة
-    if message.photo:
-        photo = message.photo[-1].file_id  # أعلى دقة
-        caption = message.caption if message.caption else ""
-        context.bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=caption)
-
-    # إذا كانت الرسالة نص فقط
-    elif message.text:
-        context.bot.send_message(chat_id=CHANNEL_ID, text=message.text)
+def is_market_open():
+    now_utc = datetime.utcnow()
+    # السوق من 13:30 إلى 20:00 بتوقيت UTC (يعادل 4:30م - 11:00م بتوقيت السعودية)
+    return now_utc.hour >= 13 and (now_utc.hour < 20 or (now_utc.hour == 20 and now_utc.minute == 0))
 
 def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
+    bot = telegram.Bot(token=TOKEN)
+    sent_start = False  # لتفادي التكرار
 
-    # التقاط جميع الصور والنصوص
-    dp.add_handler(MessageHandler(Filters.photo | Filters.text, forward_message))
+    while True:
+        if is_market_open():
+            if not sent_start:
+                bot.send_message(chat_id=CHANNEL_ID, text="البوت شغّال الآن وقت التداول.")
+                sent_start = True
 
-    # تشغيل البوت
-    updater.start_polling()
-    updater.idle()
+            # مكان إضافة منطق التوصيات أو الاستقبال
+            time.sleep(10)  # راقب كل 10 ثواني مثلاً
+
+        else:
+            if sent_start:
+                bot.send_message(chat_id=CHANNEL_ID, text="انتهى وقت التداول. البوت سيعود غدًا.")
+                sent_start = False
+
+            # نام حتى يبدأ السوق (راجع كل 10 دقائق فقط خارج وقت السوق)
+            time.sleep(600)
 
 if __name__ == '__main__':
     main()
