@@ -1,36 +1,34 @@
-import time
-import telegram
+from telegram import Update, Bot
+from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
 from datetime import datetime
+import time
 
-# إعدادات البوت
 TOKEN = '8052278560:AAGAxKOYvHYjTFEVO5BiiMC_GkkiMds88rM'
 CHANNEL_ID = '@marketeyeoptions1'
 
 def is_market_open():
     now_utc = datetime.utcnow()
-    # السوق من 13:30 إلى 20:00 بتوقيت UTC (يعادل 4:30م - 11:00م بتوقيت السعودية)
-    return now_utc.hour >= 13 and (now_utc.hour < 20 or (now_utc.hour == 20 and now_utc.minute == 0))
+    return now_utc.hour >= 13 and now_utc.hour < 20
+
+def forward_message(update: Update, context: CallbackContext):
+    if is_market_open():
+        if update.message.photo:
+            photo = update.message.photo[-1].file_id
+            caption = update.message.caption if update.message.caption else ""
+            context.bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=caption)
+        elif update.message.text:
+            context.bot.send_message(chat_id=CHANNEL_ID, text=update.message.text)
+    else:
+        update.message.reply_text("السوق غير مفتوح حالياً. أرسل التوصية بعد الساعة 4:30 مساءً بتوقيت السعودية.")
 
 def main():
-    bot = telegram.Bot(token=TOKEN)
-    sent_start = False  # لتفادي التكرار
+    updater = Updater(TOKEN, use_context=True)
+    dp = updater.dispatcher
 
-    while True:
-        if is_market_open():
-            if not sent_start:
-                bot.send_message(chat_id=CHANNEL_ID, text="البوت شغّال الآن وقت التداول.")
-                sent_start = True
+    dp.add_handler(MessageHandler(Filters.text | Filters.photo, forward_message))
 
-            # مكان إضافة منطق التوصيات أو الاستقبال
-            time.sleep(10)  # راقب كل 10 ثواني مثلاً
-
-        else:
-            if sent_start:
-                bot.send_message(chat_id=CHANNEL_ID, text="انتهى وقت التداول. البوت سيعود غدًا.")
-                sent_start = False
-
-            # نام حتى يبدأ السوق (راجع كل 10 دقائق فقط خارج وقت السوق)
-            time.sleep(600)
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
     main()
