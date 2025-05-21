@@ -1,29 +1,34 @@
-import time
-import telegram
+from telegram import Bot, Update
+from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
 
-# توكن البوت الجديد
+# بيانات البوت
 TOKEN = '8052278560:AAGAxKOYvHYjTFEVO5BiiMC_GkkiMds88rM'
+CHANNEL_ID = '@marketeyeoptions1'  # غيّرها إذا تغيّر اسم القناة
 
-# معرف القناة العامة
-CHANNEL_ID = '@marketeyeoptions1'
+# الدالة الأساسية للتعامل مع كل الرسائل
+def forward_message(update: Update, context: CallbackContext):
+    message = update.message
 
-# الرسالة الافتتاحية
-START_MESSAGE = '''
-تم تشغيل البوت بنجاح!
+    # إذا كانت الرسالة تحتوي صورة
+    if message.photo:
+        photo = message.photo[-1].file_id  # أعلى دقة
+        caption = message.caption if message.caption else ""
+        context.bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=caption)
 
-سيتم إرسال التوصيات والتحديثات تلقائيًا هنا.
-#عين_السوق
-'''
+    # إذا كانت الرسالة نص فقط
+    elif message.text:
+        context.bot.send_message(chat_id=CHANNEL_ID, text=message.text)
 
 def main():
-    bot = telegram.Bot(token=TOKEN)
-    
-    # إرسال أول رسالة عند التشغيل
-    bot.send_message(chat_id=CHANNEL_ID, text=START_MESSAGE)
-    
-    # حلقة تشغيل دائمة (يمكنك إضافة منطق التوصيات داخلها لاحقًا)
-    while True:
-        time.sleep(60)
+    updater = Updater(TOKEN, use_context=True)
+    dp = updater.dispatcher
+
+    # التقاط جميع الصور والنصوص
+    dp.add_handler(MessageHandler(Filters.photo | Filters.text, forward_message))
+
+    # تشغيل البوت
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
     main()
