@@ -1,34 +1,27 @@
-from telegram import Update, Bot
-from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
-from datetime import datetime
-import time
+import telegram
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-TOKEN = '8052278560:AAGAxKOYvHYjTFEVO5BiiMC_GkkiMds88rM'
-CHANNEL_ID = '@marketeyeoptions1'
+TOKEN = "8052278560:AAFgCDTxtQg2ngmfJK5LscJInaHYfez_uGM"
+CHANNEL_USERNAME = "@marketeyeoptions"  # اسم قناة عين السوق (تأكد من صحته)
 
-def is_market_open():
-    now_utc = datetime.utcnow()
-    return now_utc.hour >= 13 and now_utc.hour < 20
+# رسالة البداية
+WELCOME_TEXT = """مرحباً بك في بوت الاشتراك الخاص بقناة "عين السوق | توصيات أوبشن يومية".
 
-def forward_message(update: Update, context: CallbackContext):
-    if is_market_open():
-        if update.message.photo:
-            photo = update.message.photo[-1].file_id
-            caption = update.message.caption if update.message.caption else ""
-            context.bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=caption)
-        elif update.message.text:
-            context.bot.send_message(chat_id=CHANNEL_ID, text=update.message.text)
-    else:
-        update.message.reply_text("السوق غير مفتوح حالياً. أرسل التوصية بعد الساعة 4:30 مساءً بتوقيت السعودية.")
+اضغط الزر أدناه للانضمام إلى القناة ومتابعة التوصيات أولاً بأول.
+"""
 
-def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
+# دالة الاستجابة لأمر /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("الانضمام إلى القناة", url=f"https://t.me/{CHANNEL_USERNAME.lstrip('@')}")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(WELCOME_TEXT, reply_markup=reply_markup)
 
-    dp.add_handler(MessageHandler(Filters.text | Filters.photo, forward_message))
-
-    updater.start_polling()
-    updater.idle()
-
-if __name__ == '__main__':
-    main()
+# تشغيل البوت
+if __name__ == "__main__":
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    print("Bot is running...")
+    app.run_polling()
