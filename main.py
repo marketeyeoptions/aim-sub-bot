@@ -1,22 +1,38 @@
-import telegram
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 TOKEN = "8052278560:AAFgCDTxtQg2ngmfJK5LscJInaHYfez_uGM"
 CHANNEL_USERNAME = "@marketeyeoptions"
 
-WELCOME_TEXT = """مرحباً بك في بوت الاشتراك الخاص بقناة "عين السوق | توصيات أوبشن يومية".
+WELCOME_TEXT = """مرحباً بك في بوت الاشتراك في قناة "عين السوق | توصيات أوبشن يومية".
 
-اضغط الزر أدناه للانضمام إلى القناة ومتابعة التوصيات أولاً بأول.
-"""
+الاشتراك مجاني 100%.
+
+نقدم توصيات سكالبنق (Scalping) وسوينق (Swing)
+مع سعر الدخول ووقف الخسارة ونوع العقد.
+
+اضغط الزر أدناه للانضمام إلى القناة."""
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # زر الاشتراك
     keyboard = [[InlineKeyboardButton("الانضمام إلى القناة", url=f"https://t.me/{CHANNEL_USERNAME.lstrip('@')}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
+
+    # إرسال الرسالة
     await update.message.reply_text(WELCOME_TEXT, reply_markup=reply_markup)
+
+async def set_commands(application):
+    await application.bot.set_my_commands([
+        BotCommand("start", "بدء الاشتراك في قناة عين السوق"),
+        BotCommand("help", "شرح سريع حول استخدام البوت")
+    ])
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    
+    # ضبط الأوامر عند التشغيل
+    app.post_init = lambda app: set_commands(app)
+    
     print("Bot is running...")
     app.run_polling()
