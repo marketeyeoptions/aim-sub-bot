@@ -19,18 +19,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(WELCOME_TEXT, reply_markup=reply_markup)
 
-async def main():
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-
-    # ضبط الأوامر
-    await app.bot.set_my_commands([
+async def setup_bot(application):
+    await application.bot.set_my_commands([
         BotCommand("start", "بدء الاشتراك في قناة عين السوق"),
         BotCommand("help", "شرح سريع حول استخدام البوت")
     ])
 
-    print("Bot is running...")
-    await app.run_polling()
-
 if __name__ == "__main__":
-    asyncio.run(main())
+    app = ApplicationBuilder().token(TOKEN).post_init(setup_bot).build()
+    app.add_handler(CommandHandler("start", start))
+
+    print("Bot is running...")
+    app.run_polling()
