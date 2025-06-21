@@ -2,14 +2,8 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotComm
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import logging
 
-TOKEN = "توكن_البوت_هنا"
+TOKEN = "8052278560:AAFgCDTxtQg2ngmfJK5LscJInaHYfez_uGM"
 CHANNEL_USERNAME = "@marketeyeoptions"
-
-# إعدادات اللوق
-logging.basicConfig(
-    format='%(asctime)s - %(message)s',
-    level=logging.INFO
-)
 
 WELCOME_TEXT = """مرحباً بك في بوت الاشتراك في قناة "عين السوق | توصيات أوبشن يومية".
 
@@ -20,24 +14,26 @@ WELCOME_TEXT = """مرحباً بك في بوت الاشتراك في قناة "
 
 اضغط الزر أدناه للانضمام إلى القناة."""
 
-def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message_text = update.message.text
-    user = update.effective_user.first_name
-
-    if "?ref=مسوق" in message_text:
-        logging.info(f"🟢 مشترك جديد من رابط المسوق: {user}")
-    else:
-        logging.info(f"🟢 مشترك جديد بدون رابط إحالة: {user}")
-
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # زر الاشتراك
     keyboard = [[InlineKeyboardButton("الانضمام إلى القناة", url=f"https://t.me/{CHANNEL_USERNAME.lstrip('@')}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    update.message.reply_text(WELCOME_TEXT, reply_markup=reply_markup)
+    # إرسال الرسالة
+    await update.message.reply_text(WELCOME_TEXT, reply_markup=reply_markup)
 
-def main():
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.run_polling()
+async def set_commands(application):
+    await application.bot.set_my_commands([
+        BotCommand("start", "بدء الاشتراك في قناة عين السوق"),
+        BotCommand("help", "شرح سريع حول استخدام البوت")
+    ])
 
 if __name__ == "__main__":
-    main()
+    logging.basicConfig(level=logging.INFO)
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+
+    app.post_init = lambda _: set_commands(app)
+    
+    print("Bot is running...")
+    app.run_polling()
