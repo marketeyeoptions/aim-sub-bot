@@ -1,47 +1,54 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-from datetime import datetime
+import logging
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
 
-TOKEN = "8052278560:AAFgCDTxtQg2ngmfJK5LscJInaHYfez_uGM"
-CHANNEL_ID = -1002143952381  # قناة: @marketeyeoptions
+# التوكن الجديد للبوت
+TOKEN = "8052278560:AAFRVJPAq9LOXNwzpiB3bKSi5DwlWDbBCSo"
 
-WELCOME_TEXT = """مرحباً بك في بوت الاشتراك في قناة "عين السوق | توصيات أوبشن يومية".
+# آيدي الأدمن اللي توصله التنبيهات
+ADMIN_CHAT_ID = 5041169546
 
-الاشتراك مجاني 100%.
+# رسالة ترحيب
+WELCOME_MSG = """مرحبًا بك في بوت الاشتراك الرسمي لقناة "عين السوق | توصيات أوبشن يومية".
 
-نقدم توصيات سكالبنق (Scalping) وسوينق (Swing)
-مع سعر الدخول ووقف الخسارة ونوع العقد.
+الاشتراك مجاني 100٪.
 
-اضغط الزر أدناه للانضمام إلى القناة."""
+نقدم توصيات سكالبينق (Scalping) وويكلي (Swing)
+مع سعر الدخول ووقف الخسارة وتوزيع العقود.
 
+اضغط الزر أدناه للانضمام إلى القناة 👇
+"""
+
+# عند الضغط على /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    args = context.args
-    tag = args[0] if args else "بدون كود"
+    username = user.username or "بدون اسم مستخدم"
+    first_name = user.first_name or ""
 
-    keyboard = [[InlineKeyboardButton("الانضمام إلى القناة", url="https://t.me/marketeyeoptions")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(WELCOME_TEXT, reply_markup=reply_markup)
+    # استخراج كود المسوق إن وجد
+    code = context.args[0] if context.args else "غير محدد"
 
-    name = user.full_name
-    username = f"@{user.username}" if user.username else "لا يوجد"
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    msg = f"""🚨 تم دخول مستخدم جديد عن طريق المسوق:
+    # إرسال رسالة ترحيب للمستخدم
+    await update.message.reply_text(WELCOME_MSG)
+    await update.message.reply_text(
+        "🟢 [الانضمام إلى القناة](https://t.me/marketeyeoptions)", parse_mode="Markdown"
+    )
 
-الاسم: {name}
-المعرف: {username}
-الوقت: {now}
-رمز المسوق: {tag}
+    # إرسال تنبيه للأدمن
+    msg = f"""🟢 دخل مستخدم جديد إلى البوت:
+
+• الاسم: {first_name}
+• المستخدم: @{username}
+• الكود: {code}
 """
-    await context.bot.send_message(chat_id=CHANNEL_ID, text=msg)
+    await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=msg)
 
-async def set_commands(application):
-    await application.bot.set_my_commands([
-        BotCommand("start", "بدء الاشتراك في القناة")
-    ])
+# إعداد البوت
+def main():
+    logging.basicConfig(level=logging.INFO)
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.run_polling()
 
 if __name__ == "__main__":
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.post_init = lambda app: set_commands(app)
-    app.run_polling()
+    main()
