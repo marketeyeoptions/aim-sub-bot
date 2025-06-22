@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 # إعدادات
-BOT_TOKEN = "8052278560:AAEGm-KcpLDFDAvzhW84MAlTQcUfwdql48Q"
+BOT_TOKEN = "8052278560:AAEGm-KcpLDFDAvzhW84MAlTQcUf"
 ADMIN_USERNAME = "@marketeyeoptions2"  # الحساب الذي يصله التنبيه
 
 # إعدادات اللوق
