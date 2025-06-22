@@ -1,49 +1,53 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
+import logging
 from datetime import datetime
 
-# توكن البوت (استبدله بالتوكن الحقيقي)
+# إعدادات
 BOT_TOKEN = "8052278560:AAEGm-KcpLDFDAvzhW84MAlTQcUfwdql48Q"
+ADMIN_USERNAME = "@marketeyeoptions2"  # الحساب الذي يصله التنبيه
 
-# معرف الحساب الذي يستقبل تنبيهات الدخول (مع @)
-OWNER_USERNAME = "@marketeyeoptions2"
+# إعدادات اللوق
+logging.basicConfig(level=logging.INFO)
 
-# دالة بدء البوت
+# دالة الرد على /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    user_name = user.full_name
+    username = f"@{user.username}" if user.username else "بدون اسم مستخدم"
+    user_id = user.id
+    time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # التحقق من وجود كود المسوق
+    # قراءة كود الإحالة إن وُجد
     args = context.args
-    if args:
-        referral_code = args[0]
-        message = (
-            f"👤 مستخدم جديد دخل البوت\n"
-            f"الاسم: {user.full_name}\n"
-            f"المعرف: @{user.username}\n"
-            f"الوقت: {time}\n"
-            f"كود المسوق: {referral_code}"
-        )
-        await context.bot.send_message(chat_id=OWNER_USERNAME, text=message)
+    referral = args[0] if args else "لا يوجد"
 
-    # رسالة الترحيب
-    keyboard = [[InlineKeyboardButton("🟢 الانضمام إلى القناة", url="https://t.me/marketeyeoptions")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await update.message.reply_text(
+    # إرسال الرسالة للمستخدم
+    welcome_message = (
         "مرحباً بك في بوت الاشتراك الرسمي لقناة “عين السوق | توصيات أوبشن يومية”.\n\n"
-        "الاشتراك مجاني 100٪.\n"
-        "نقدم توصيات سكالبينق (Scalping) وويكلي (Swing)\n"
+        "الاشتراك مجاني 100٪:\n"
+        "نقدم توصيات سكالبينق (Scalping) وويكلـي (Swing)\n"
         "مع سعر الدخول ووقف الخسارة وتوزيع العقود.\n\n"
-        "اضغط الزر أدناه للانضمام إلى القناة 👇",
-        reply_markup=reply_markup
+        "اضغط الزر أدناه للانضمام إلى القناة 👇"
     )
+    join_button = [["الانضمام إلى القناة 🟢", "https://t.me/marketeyeoptions"]]
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=welcome_message)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="https://t.me/marketeyeoptions")
 
-# تهيئة وتشغيل البوت
-def main():
+    # إرسال التنبيه لحساب الأدمن
+    admin_alert = (
+        f"🚨 دخول جديد إلى البوت\n\n"
+        f"👤 الاسم: {user_name}\n"
+        f"💬 يوزر: {username}\n"
+        f"🆔 ID: {user_id}\n"
+        f"⏰ الوقت: {time_now}\n"
+        f"🏷️ كود الإحالة: {referral}"
+    )
+    await context.bot.send_message(chat_id=ADMIN_USERNAME, text=admin_alert)
+
+# تشغيل البوت
+if __name__ == "__main__":
     app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    print("Bot is running...")
     app.run_polling()
-
-if __name__ == "__main__":
-    main()
