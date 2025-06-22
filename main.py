@@ -1,38 +1,49 @@
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, ContextTypes
 from datetime import datetime
 
+# توكن البوت (استبدله بالتوكن الحقيقي)
 BOT_TOKEN = "8052278560:AAEGm-KcpLDFDAvzhW84MAlTQcUfwdql48Q"
-ADMIN_USERNAME = "@marketeyeoptions2"
 
+# معرف الحساب الذي يستقبل تنبيهات الدخول (مع @)
+OWNER_USERNAME = "@marketeyeoptions2"
+
+# دالة بدء البوت
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    args = context.args
-    username = update.effective_user.username or "بدون اسم مستخدم"
+    user = update.effective_user
     time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # التحقق من وجود كود المسوق
+    args = context.args
     if args:
         referral_code = args[0]
-        message = f"👤 دخل شخص جديد للبوت\nالاسم: @{username}\nالوقت: {time}\nالمسوق: {referral_code}"
-        await context.bot.send_message(chat_id=ADMIN_USERNAME, text=message)
+        message = (
+            f"👤 مستخدم جديد دخل البوت\n"
+            f"الاسم: {user.full_name}\n"
+            f"المعرف: @{user.username}\n"
+            f"الوقت: {time}\n"
+            f"كود المسوق: {referral_code}"
+        )
+        await context.bot.send_message(chat_id=OWNER_USERNAME, text=message)
 
-    welcome_text = (
+    # رسالة الترحيب
+    keyboard = [[InlineKeyboardButton("🟢 الانضمام إلى القناة", url="https://t.me/marketeyeoptions")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text(
         "مرحباً بك في بوت الاشتراك الرسمي لقناة “عين السوق | توصيات أوبشن يومية”.\n\n"
         "الاشتراك مجاني 100٪.\n"
         "نقدم توصيات سكالبينق (Scalping) وويكلي (Swing)\n"
         "مع سعر الدخول ووقف الخسارة وتوزيع العقود.\n\n"
-        "اضغط الزر أدناه للانضمام إلى القناة 👇"
+        "اضغط الزر أدناه للانضمام إلى القناة 👇",
+        reply_markup=reply_markup
     )
-    join_button = [[
-        {"text": "الانضمام إلى القناة 🟢", "url": "https://t.me/marketeyeoptions"}
-    ]]
-    await update.message.reply_text(welcome_text, reply_markup={"inline_keyboard": join_button})
+
+# تهيئة وتشغيل البوت
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.run_polling()
 
 if __name__ == "__main__":
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    import asyncio
-    async def run():
-        await app.bot.set_webhook("https://aim-sub-bot.onrender.com")
-        await app.start()
-        await app.updater.start_polling()
-    asyncio.run(run())
+    main()
