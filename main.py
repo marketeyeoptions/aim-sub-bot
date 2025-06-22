@@ -1,34 +1,29 @@
-import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-from datetime import datetime
 
-# إعدادات التوكن والمعرف الذي يستقبل التنبيهات
-BOT_TOKEN = "8052278560:AAEGm-KcpLDFDAvzhW84MAlTQcUfwdql48"
-ADMIN_ID = 515795120  # حسابك الشخصي @marketeyeoptions2
+# توكن البوت
+BOT_TOKEN = "8052278560:AAEGm-KcpLDFDAvzhW84MAlTQcUfwdql48Q"
 
-# تفعيل اللوق
-logging.basicConfig(level=logging.INFO)
+# المعرّف الشخصي لحسابك اللي يستقبل التنبيهات (تأكد إنه @marketeyeoptions2)
+ADMIN_USERNAME = "marketeyeoptions2"
 
-# دالة الاستجابة لأمر /start
+# دالة start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # رسالة ترحيب للمستخدم
+    await update.message.reply_text("مرحباً بك في قناة عين السوق 👁️📊\nشكراً لانضمامك!")
+
+    # إرسال تنبيه لحساب الأدمن
     user = update.effective_user
-    args = context.args  # قراءة كود المسوق (إن وُجد)
-    code = args[0] if args else "بدون كود"
-
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    msg = (
-        f"📥 دخول جديد للبوت:\n"
-        f"• الاسم: {user.full_name}\n"
-        f"• المعرّف: @{user.username if user.username else 'بدون'}\n"
-        f"• الوقت: {now}\n"
-        f"• كود المسوق: {code}"
-    )
+    message = f"🔔 مستخدم جديد ضغط /start\nالاسم: {user.full_name}\nالمعرف: @{user.username or 'لا يوجد'}\nالمعرف الرقمي: {user.id}"
     
-    await context.bot.send_message(chat_id=ADMIN_ID, text=msg)
+    # أرسل التنبيه إذا مشتركك معرفه معروف
+    try:
+        await context.bot.send_message(chat_id=f"@{ADMIN_USERNAME}", text=message)
+    except Exception as e:
+        print("خطأ في إرسال التنبيه:", e)
 
-# تشغيل التطبيق
-if __name__ == "__main__":
+# إعداد البوت
+if __name__ == '__main__':
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.run_polling()
