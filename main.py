@@ -4,7 +4,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from datetime import datetime
 
 # إعدادات التوكن والمعرف الذي يستقبل التنبيهات
-BOT_TOKEN = "8052278560:AAEGm-KcpLDFDAvzhW84MAlTQcUfwdql48Q"
+BOT_TOKEN = "8052278560:AAEGm-KcpLDFDAvzhW84MAlTQcUfwdql48"
 ADMIN_ID = 515795120  # حسابك الشخصي @marketeyeoptions2
 
 # تفعيل اللوق
